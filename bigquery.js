@@ -51,7 +51,7 @@ function execBigQuery(ws, request, tableId) {
 
   const rows = getAllResults(queryResults, jobId);
 
-  const data = outputBigQueryResults(rows, ws, queryResults);
+  const data = outputToSpreadsheet(rows, ws, queryResults);
 
   loadDataToBigQuery(data, tableId);
 }
@@ -80,7 +80,7 @@ function getAllResults(queryResults, jobId) {
 }
 
 // Clear sheet data and output BigQuery results to sheet.
-function outputBigQueryResults(rows, ws, queryResults) {
+function outputToSpreadsheet(rows, ws, queryResults) {
   if (rows) {
     ws.clear();
 
