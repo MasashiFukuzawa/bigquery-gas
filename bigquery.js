@@ -18,48 +18,6 @@ function execQueryAccordingToDate() {
   execBigQuery(ws, request, 'mysql_' + mysqlTable);
 };
 
-function execBigQuery(ws, request, tableId) {
-  var queryResults = BigQuery.Jobs.query(request, projectId);
-  var jobId = queryResults.jobReference.jobId;
-
-  queryResults = checkOnQueryJobStatus(queryResults, jobId);
-
-  var rows = getAllResults(queryResults, jobId);
-
-  outputBigQueryResults(rows, ws, queryResults);
-
-  loadDataToBigQuery(ws, tableId);
-}
-
-// Clear sheet data and output BigQuery results to sheet.
-function outputBigQueryResults(rows, ws, queryResults) {
-  if (rows) {
-    ws.clear();
-
-    // Append the headers and return header cols.
-    const headers = appendHeader(ws, queryResults);
-
-    // Append the results and return all spreadsheet data.
-    const data = appendResults(rows, headers);
-
-    ws.getRange(2, 1, rows.length, headers.length).setValues(data);
-  } else {
-    Logger.log('No rows returned.');
-  }
-}
-
-function loadDataToBigQuery(ws, tableId) {
-  if (!targetTableExists(tableId)) {
-    createTable(tableId);
-  }
-
-  // Use filter to prevent mixing unnecessary empty data.
-  const values = ws.getRange(2, 1, ws.getLastRow(), ws.getLastColumn()).getValues().filter(function(e) {return !!e[0]});
-  const blob   = convertArrayToBlob(values);
-
-  insertData(blob, tableId);
-}
-
 function setMysqlTable() {
   const today = new Date();
   const day   = today.getDate();
@@ -77,12 +35,25 @@ function setMysqlTable() {
 
 function setQuery(mysqlTable) {
   // Read MySQL data directly from BigQuery by using CloudSQL Federation Query.
-  var query =
+  const query =
     "SELECT * FROM EXTERNAL_QUERY( \
       'mycurryapp.asia-northeast1.cloudsql-mycurryapp', \
       'SELECT * FROM " + mysqlTable + "' \
     );"
   return query;
+}
+
+function execBigQuery(ws, request, tableId) {
+  const queryResults = BigQuery.Jobs.query(request, projectId);
+  const jobId = queryResults.jobReference.jobId;
+
+  queryResults = checkOnQueryJobStatus(queryResults, jobId);
+
+  const rows = getAllResults(queryResults, jobId);
+
+  const data = outputBigQueryResults(rows, ws, queryResults);
+
+  loadDataToBigQuery(data, tableId);
 }
 
 // Check on status of the Query Job.
@@ -106,6 +77,33 @@ function getAllResults(queryResults, jobId) {
     rows = rows.concat(queryResults.rows);
   }
   return rows;
+}
+
+// Clear sheet data and output BigQuery results to sheet.
+function outputBigQueryResults(rows, ws, queryResults) {
+  if (rows) {
+    ws.clear();
+
+    // Append the headers and return header cols.
+    const headers = appendHeader(ws, queryResults);
+
+    // Append the results and return all spreadsheet data.
+    const data = appendResults(rows, headers);
+
+    ws.getRange(2, 1, rows.length, headers.length).setValues(data);
+
+    return data;
+  } else {
+    Logger.log('No rows returned.');
+  }
+}
+
+function loadDataToBigQuery(data, tableId) {
+  if (!targetTableExists(tableId)) {
+    createTable(tableId);
+  }
+
+  insertData(convertArrayToBlob(data), tableId);
 }
 
 function appendHeader(ws, queryResults) {
@@ -135,7 +133,7 @@ function targetTableExists(tableId) {
     return false;
   }
 
-  const tables = tableInfo.map(function(table){
+  const tables = tableInfo.tables.map(function(table){
     return table.tableReference.tableId;
   });
 
@@ -147,7 +145,7 @@ function targetTableExists(tableId) {
 }
 
 function createTable(tableId) {
-  var table = {
+  const table = {
     tableReference: {
       projectId: projectId,
       datasetId: datasetId,
@@ -180,7 +178,7 @@ function convertArrayToBlob(values) {
 }
 
 function insertData(blob, tableId) {
-  var job = {
+  const job = {
     configuration: {
       load: {
         destinationTable: {
