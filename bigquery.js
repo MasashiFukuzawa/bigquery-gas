@@ -98,14 +98,6 @@ function outputToSpreadsheet(rows, ws, queryResults) {
   }
 }
 
-function loadDataToBigQuery(data, tableId) {
-  if (!targetTableExists(tableId)) {
-    createTable(tableId);
-  }
-
-  insertData(convertArrayToBlob(data), tableId);
-}
-
 function appendHeader(ws, queryResults) {
   const headers = queryResults.schema.fields.map(function(field) {
     return field.name;
@@ -124,6 +116,14 @@ function appendResults(rows, headers) {
     }
   }
   return data;
+}
+
+function loadDataToBigQuery(data, tableId) {
+  if (!targetTableExists(tableId)) {
+    createTable(tableId);
+  }
+
+  insertData(convertArrayToBlob(data), tableId);
 }
 
 function targetTableExists(tableId) {
