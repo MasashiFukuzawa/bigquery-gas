@@ -43,7 +43,6 @@ function outputBigQueryResults(rows, ws, queryResults) {
     const data = appendResults(rows, headers);
 
     ws.getRange(2, 1, rows.length, headers.length).setValues(data);
-    ws.getRange(2, 5, 1, 1).clear();
   } else {
     Logger.log('No rows returned.');
   }
@@ -124,22 +123,19 @@ function appendResults(rows, headers) {
     data[i] = new Array(cols.length);
     for (var j = 0; j < cols.length; j++) {
       data[i][j] = cols[j].v;
-      if(headers[j].substr(-3)=="_at") {
-        data[i][j] = cols[j].v
-        if(data[i][j] < 10000000000000) {
-          data[i][j] = new Date(data[i][j]);
-        }
-        else if(data[i][j] < 10000000000000*1000) {
-          data[i][j] = new Date(data[i][j] / 1000);
-        }
-      }
     }
   }
   return data;
 }
 
 function targetTableExists(tableId) {
-  const tables = BigQuery.Tables.list(projectId, datasetId).tables.map(function(table){
+  const tableInfo = BigQuery.Tables.list(projectId, datasetId);
+
+  if (tableInfo.totalItems === 0) {
+    return false;
+  }
+
+  const tables = tableInfo.map(function(table){
     return table.tableReference.tableId;
   });
 
@@ -199,13 +195,13 @@ function insertData(blob, tableId) {
       }
     }
   };
-  job = BigQuery.Jobs.insert(job, projectId, blob);
+  BigQuery.Jobs.insert(job, projectId, blob);
 }
 
 function setBigQuerySchema(tableId) {
   var bq_schema;
   switch (tableId) {
-    case 'users':
+    case 'mysql_users':
       bq_schema = [
         {"name": "id", "type": "INTEGER", "mode": "NULLABLE"},
         {"name": "email", "type": "STRING", "mode": "NULLABLE"},
@@ -227,7 +223,7 @@ function setBigQuerySchema(tableId) {
         {"name": "admin_flg", "type": "INTEGER", "mode": "NULLABLE"}
       ];
       break;
-    case 'comments':
+    case 'mysql_comments':
       bq_schema = [
         {"name": "id", "type": "INTEGER", "mode": "NULLABLE"},
         {"name": "body", "type": "STRING", "mode": "NULLABLE"},
@@ -238,7 +234,7 @@ function setBigQuerySchema(tableId) {
         {"name": "updated_at", "type": "DATETIME", "mode": "NULLABLE"}
       ]
       break;
-    case 'shops':
+    case 'mysql_shops':
       bq_schema = [
         {"name": "id", "type": "INTEGER", "mode": "NULLABLE"},
         {"name": "name", "type": "STRING", "mode": "NULLABLE"},
