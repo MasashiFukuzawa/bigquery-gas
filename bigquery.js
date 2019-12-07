@@ -159,43 +159,6 @@ function createTable(tableId) {
   Logger.log('Table created: %s', table.id);
 }
 
-function convertArrayToBlob(values) {
-  const contentType   = "text/csv";
-  const lineDelimiter = ",";
-
-  var csvStr = '';
-
-  // Prepare array to csv format with underscoreGS module.
-  underscoreGS._map(
-    values,
-    function(row){
-      csvStr += row.join(lineDelimiter) + '\n';
-    }
-  )
-
-  // Get blob data and return.
-  return Utilities.newBlob(csvStr, contentType);
-}
-
-function insertData(blob, tableId) {
-  const job = {
-    configuration: {
-      load: {
-        destinationTable: {
-          projectId: projectId,
-          datasetId: datasetId,
-          tableId: tableId
-        },
-        skipLeadingRows: 0,
-        allowJaggedRows: true,
-        allowQuotedNewlines: true,
-        writeDisposition: 'WRITE_TRUNCATE' // update the target table
-      }
-    }
-  };
-  BigQuery.Jobs.insert(job, projectId, blob);
-}
-
 function setBigQuerySchema(tableId) {
   var bq_schema;
   switch (tableId) {
@@ -257,6 +220,43 @@ function setBigQuerySchema(tableId) {
       break;
   }
   return bq_schema;
+}
+
+function convertArrayToBlob(values) {
+  const contentType   = "text/csv";
+  const lineDelimiter = ",";
+
+  var csvStr = '';
+
+  // Prepare array to csv format with underscoreGS module.
+  underscoreGS._map(
+    values,
+    function(row){
+      csvStr += row.join(lineDelimiter) + '\n';
+    }
+  )
+
+  // Get blob data and return.
+  return Utilities.newBlob(csvStr, contentType);
+}
+
+function insertData(blob, tableId) {
+  const job = {
+    configuration: {
+      load: {
+        destinationTable: {
+          projectId: projectId,
+          datasetId: datasetId,
+          tableId: tableId
+        },
+        skipLeadingRows: 0,
+        allowJaggedRows: true,
+        allowQuotedNewlines: true,
+        writeDisposition: 'WRITE_TRUNCATE' // update the target table
+      }
+    }
+  };
+  BigQuery.Jobs.insert(job, projectId, blob);
 }
 
 function onOpen() {
