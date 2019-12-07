@@ -1,6 +1,6 @@
 // Your GCP information
 var projectId = '<YOUR GCP PROJECT NUMBER>';
-var datasetId = '<YOUR BIGQUERY DATASET>';
+var datasetId = 'data_lake';
 // Spreadsheet
 var ss = SpreadsheetApp.openById('<YOUR SPREADSHEET ID>');
 
