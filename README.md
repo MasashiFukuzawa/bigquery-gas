@@ -1,1 +1,1 @@
-詳細は[【GAS/BigQuery】日付に応じて異なるクエリを実行](https://qiita.com/fuku_tech/private/7d74506b8057712d600b)をご覧下さい。
+詳細は[【GAS/BigQuery】日付に応じて異なるクエリを実行](https://qiita.com/fuku_tech/items/7d74506b8057712d600b)をご覧下さい。
